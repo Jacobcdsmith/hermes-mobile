@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { HermesConfig, ChatMessage, streamChat, sendChat, getModels } from '../lib/hermes'
 import { Conversation, saveHistory, saveModel } from '../lib/storage'
 
@@ -10,7 +10,7 @@ interface Props {
   activeConvo: string | null
   setActiveConvo: (id: string | null) => void
   model: string
-  setModel: (m: string) => void
+  setModel: React.Dispatch<React.SetStateAction<string>>
 }
 
 export default function Chat({
@@ -20,6 +20,7 @@ export default function Chat({
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [models, setModels] = useState<string[]>([])
+  const [loadingModels, setLoadingModels] = useState(false)
   const [streamText, setStreamText] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -27,18 +28,26 @@ export default function Chat({
   const convo = conversations.find(c => c.id === activeConvo)
   const messages = convo?.messages || []
 
-  // Load models on mount
-  useEffect(() => {
+  const fetchModels = useCallback(() => {
     if (!config.host && config.provider !== 'lmstudio') return
+    setLoadingModels(true)
     getModels(config).then(m => {
       const ids = m.map(x => x.id)
       setModels(ids)
-      if (!model && ids.length > 0) {
-        setModel(ids[0])
-        saveModel(ids[0])
+      setLoadingModels(false)
+      if (ids.length > 0) {
+        setModel(prev => {
+          if (!prev) { saveModel(ids[0]); return ids[0] }
+          return prev
+        })
       }
     })
-  }, [config])
+  }, [config, setModel])
+
+  // Fetch models when config changes or server comes online
+  useEffect(() => {
+    if (online) fetchModels()
+  }, [config, online, fetchModels])
 
   // Auto-scroll
   useEffect(() => {
@@ -124,6 +133,17 @@ export default function Chat({
           {models.length === 0 && <option value="">No models found</option>}
           {models.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
+        <button
+          onClick={fetchModels}
+          disabled={loadingModels || !online}
+          title="Refresh models"
+          className="p-1.5 rounded border border-hermes-border text-hermes-muted hover:border-hermes-green hover:text-hermes-green transition-colors disabled:opacity-40"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={loadingModels ? 'animate-spin' : ''}>
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+          </svg>
+        </button>
         <button
           onClick={() => { setActiveConvo(null) }}
           className="px-3 py-1.5 rounded border border-hermes-border text-hermes-muted text-xs hover:border-hermes-green hover:text-hermes-green transition-colors"
