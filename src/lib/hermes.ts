@@ -30,10 +30,9 @@ const headers = (cfg: HermesConfig): Record<string, string> => {
   return h
 }
 
-// LM Studio native API uses /api/v1 prefix and its own endpoint names
-const chatPath    = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/chat'   : '/v1/chat/completions'
-const modelsPath  = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/models'  : '/v1/models'
-const healthPath  = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/models'  : '/health'
+// LM Studio uses the same OpenAI-compatible /v1/* paths as Hermes.
+// Hermes has a dedicated /health; LM Studio uses /v1/models as a health probe.
+const healthPath = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/v1/models' : '/health'
 
 export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
   try {
@@ -49,14 +48,13 @@ export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
 
 export async function getModels(cfg: HermesConfig): Promise<Model[]> {
   try {
-    const res = await fetch(`${getBaseUrl(cfg)}${modelsPath(cfg)}`, {
+    const res = await fetch(`${getBaseUrl(cfg)}/v1/models`, {
       headers: headers(cfg),
       signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    // Hermes/OpenAI: { data: [...] }  |  LM Studio native: flat array
-    return Array.isArray(data) ? data : (data.data || [])
+    return data.data || []
   } catch {
     return []
   }
@@ -67,7 +65,7 @@ export async function* streamChat(
   model: string,
   messages: ChatMessage[],
 ): AsyncGenerator<string> {
-  const res = await fetch(`${getBaseUrl(cfg)}${chatPath(cfg)}`, {
+  const res = await fetch(`${getBaseUrl(cfg)}/v1/chat/completions`, {
     method: 'POST',
     headers: headers(cfg),
     body: JSON.stringify({
@@ -117,7 +115,7 @@ export async function sendChat(
   model: string,
   messages: ChatMessage[],
 ): Promise<string> {
-  const res = await fetch(`${getBaseUrl(cfg)}${chatPath(cfg)}`, {
+  const res = await fetch(`${getBaseUrl(cfg)}/v1/chat/completions`, {
     method: 'POST',
     headers: headers(cfg),
     body: JSON.stringify({
