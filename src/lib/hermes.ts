@@ -30,11 +30,14 @@ const headers = (cfg: HermesConfig): Record<string, string> => {
   return h
 }
 
+// LM Studio native API uses /api/v1 prefix and its own endpoint names
+const chatPath    = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/chat'   : '/v1/chat/completions'
+const modelsPath  = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/models'  : '/v1/models'
+const healthPath  = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/models'  : '/health'
+
 export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
   try {
-    // LM Studio has no /health endpoint — use /v1/models instead
-    const path = cfg.provider === 'lmstudio' ? '/v1/models' : '/health'
-    const res = await fetch(`${getBaseUrl(cfg)}${path}`, {
+    const res = await fetch(`${getBaseUrl(cfg)}${healthPath(cfg)}`, {
       headers: headers(cfg),
       signal: AbortSignal.timeout(5000),
     })
@@ -46,13 +49,14 @@ export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
 
 export async function getModels(cfg: HermesConfig): Promise<Model[]> {
   try {
-    const res = await fetch(`${getBaseUrl(cfg)}/v1/models`, {
+    const res = await fetch(`${getBaseUrl(cfg)}${modelsPath(cfg)}`, {
       headers: headers(cfg),
       signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    return data.data || []
+    // Hermes/OpenAI: { data: [...] }  |  LM Studio native: flat array
+    return Array.isArray(data) ? data : (data.data || [])
   } catch {
     return []
   }
@@ -63,7 +67,7 @@ export async function* streamChat(
   model: string,
   messages: ChatMessage[],
 ): AsyncGenerator<string> {
-  const res = await fetch(`${getBaseUrl(cfg)}/v1/chat/completions`, {
+  const res = await fetch(`${getBaseUrl(cfg)}${chatPath(cfg)}`, {
     method: 'POST',
     headers: headers(cfg),
     body: JSON.stringify({
@@ -113,7 +117,7 @@ export async function sendChat(
   model: string,
   messages: ChatMessage[],
 ): Promise<string> {
-  const res = await fetch(`${getBaseUrl(cfg)}/v1/chat/completions`, {
+  const res = await fetch(`${getBaseUrl(cfg)}${chatPath(cfg)}`, {
     method: 'POST',
     headers: headers(cfg),
     body: JSON.stringify({
