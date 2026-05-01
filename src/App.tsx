@@ -19,7 +19,7 @@ export default function App() {
 
   // Health check polling
   useEffect(() => {
-    if (!config.host) { setOnline(false); return }
+    if (!config.host && config.provider !== 'lmstudio') { setOnline(false); return }
     let alive = true
     const poll = async () => {
       const ok = await checkHealth(config)
@@ -30,7 +30,8 @@ export default function App() {
     return () => { alive = false; clearInterval(id) }
   }, [config])
 
-  const needsSetup = !config.host
+  // LM Studio defaults to localhost so an empty host is still usable
+  const needsSetup = !config.host && config.provider !== 'lmstudio'
 
   return (
     <div className="h-full flex flex-col bg-hermes-dark">

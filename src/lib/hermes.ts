@@ -1,7 +1,11 @@
+export type Provider = 'hermes' | 'lmstudio'
+
 export interface HermesConfig {
+  provider: Provider
   host: string
   port: string
   token: string
+  apiKey: string
 }
 
 export interface ChatMessage {
@@ -14,16 +18,26 @@ export interface Model {
   object: string
 }
 
-const getBaseUrl = (cfg: HermesConfig) => `http://${cfg.host}:${cfg.port}`
+const getBaseUrl = (cfg: HermesConfig) => {
+  const host = cfg.provider === 'lmstudio' ? (cfg.host || 'localhost') : cfg.host
+  return `http://${host}:${cfg.port}`
+}
 
-const headers = (cfg: HermesConfig) => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${cfg.token}`,
-})
+const headers = (cfg: HermesConfig): Record<string, string> => {
+  const credential = cfg.provider === 'lmstudio' ? cfg.apiKey : cfg.token
+  const h: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (credential) h['Authorization'] = `Bearer ${credential}`
+  return h
+}
+
+// LM Studio native API uses /api/v1 prefix and its own endpoint names
+const chatPath    = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/chat'   : '/v1/chat/completions'
+const modelsPath  = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/models'  : '/v1/models'
+const healthPath  = (cfg: HermesConfig) => cfg.provider === 'lmstudio' ? '/api/v1/models'  : '/health'
 
 export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
   try {
-    const res = await fetch(`${getBaseUrl(cfg)}/health`, {
+    const res = await fetch(`${getBaseUrl(cfg)}${healthPath(cfg)}`, {
       headers: headers(cfg),
       signal: AbortSignal.timeout(5000),
     })
@@ -35,13 +49,14 @@ export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
 
 export async function getModels(cfg: HermesConfig): Promise<Model[]> {
   try {
-    const res = await fetch(`${getBaseUrl(cfg)}/v1/models`, {
+    const res = await fetch(`${getBaseUrl(cfg)}${modelsPath(cfg)}`, {
       headers: headers(cfg),
       signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    return data.data || []
+    // Hermes/OpenAI: { data: [...] }  |  LM Studio native: flat array
+    return Array.isArray(data) ? data : (data.data || [])
   } catch {
     return []
   }
@@ -52,7 +67,7 @@ export async function* streamChat(
   model: string,
   messages: ChatMessage[],
 ): AsyncGenerator<string> {
-  const res = await fetch(`${getBaseUrl(cfg)}/v1/chat/completions`, {
+  const res = await fetch(`${getBaseUrl(cfg)}${chatPath(cfg)}`, {
     method: 'POST',
     headers: headers(cfg),
     body: JSON.stringify({
@@ -63,7 +78,7 @@ export async function* streamChat(
   })
 
   if (!res.ok) {
-    throw new Error(`Hermes error: ${res.status}`)
+    throw new Error(`API error: ${res.status}`)
   }
 
   const reader = res.body?.getReader()
@@ -102,7 +117,7 @@ export async function sendChat(
   model: string,
   messages: ChatMessage[],
 ): Promise<string> {
-  const res = await fetch(`${getBaseUrl(cfg)}/v1/chat/completions`, {
+  const res = await fetch(`${getBaseUrl(cfg)}${chatPath(cfg)}`, {
     method: 'POST',
     headers: headers(cfg),
     body: JSON.stringify({
@@ -112,7 +127,7 @@ export async function sendChat(
     }),
   })
 
-  if (!res.ok) throw new Error(`Hermes error: ${res.status}`)
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
   const data = await res.json()
   return data.choices?.[0]?.message?.content || ''
 }
