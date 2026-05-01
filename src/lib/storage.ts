@@ -4,12 +4,24 @@ const CONFIG_KEY = 'hermes-config'
 const HISTORY_KEY = 'hermes-history'
 const MODEL_KEY = 'hermes-model'
 
+const DEFAULT_CONFIG: HermesConfig = {
+  provider: 'hermes',
+  host: '',
+  port: '8765',
+  token: 'jacob-local-key',
+  apiKey: 'lm-studio',
+}
+
 export function loadConfig(): HermesConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      // Migrate configs saved before provider field was added
+      return { ...DEFAULT_CONFIG, ...parsed }
+    }
   } catch {}
-  return { host: '', port: '8765', token: 'jacob-local-key' }
+  return { ...DEFAULT_CONFIG }
 }
 
 export function saveConfig(cfg: HermesConfig) {

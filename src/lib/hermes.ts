@@ -1,7 +1,11 @@
+export type Provider = 'hermes' | 'lmstudio'
+
 export interface HermesConfig {
+  provider: Provider
   host: string
   port: string
   token: string
+  apiKey: string
 }
 
 export interface ChatMessage {
@@ -18,12 +22,14 @@ const getBaseUrl = (cfg: HermesConfig) => `http://${cfg.host}:${cfg.port}`
 
 const headers = (cfg: HermesConfig) => ({
   'Content-Type': 'application/json',
-  'Authorization': `Bearer ${cfg.token}`,
+  'Authorization': `Bearer ${cfg.provider === 'lmstudio' ? cfg.apiKey : cfg.token}`,
 })
 
 export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
   try {
-    const res = await fetch(`${getBaseUrl(cfg)}/health`, {
+    // LM Studio has no /health endpoint — use /v1/models instead
+    const path = cfg.provider === 'lmstudio' ? '/v1/models' : '/health'
+    const res = await fetch(`${getBaseUrl(cfg)}${path}`, {
       headers: headers(cfg),
       signal: AbortSignal.timeout(5000),
     })
@@ -63,7 +69,7 @@ export async function* streamChat(
   })
 
   if (!res.ok) {
-    throw new Error(`Hermes error: ${res.status}`)
+    throw new Error(`API error: ${res.status}`)
   }
 
   const reader = res.body?.getReader()
@@ -112,7 +118,7 @@ export async function sendChat(
     }),
   })
 
-  if (!res.ok) throw new Error(`Hermes error: ${res.status}`)
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
   const data = await res.json()
   return data.choices?.[0]?.message?.content || ''
 }
