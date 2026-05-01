@@ -32,7 +32,8 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
     if (port === PROVIDER_DEFAULTS[provider].port) setPort(defaults.port)
   }
 
-  const currentConfig = (): HermesConfig => ({ provider, host, port, token, apiKey })
+  const resolvedHost = provider === 'lmstudio' ? (host || 'localhost') : host
+  const currentConfig = (): HermesConfig => ({ provider, host: resolvedHost, port, token, apiKey })
 
   const save = () => {
     const cfg = currentConfig()
@@ -49,7 +50,6 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
     setTesting(false)
   }
 
-  const effectiveHost = provider === 'lmstudio' ? (host || 'localhost') : host
   const canSave = provider === 'lmstudio' ? true : !!host
 
   return (
@@ -140,7 +140,7 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
         <div className="flex gap-3 pt-2">
           <button
             onClick={test}
-            disabled={!effectiveHost || testing}
+            disabled={!resolvedHost || testing}
             className="flex-1 py-2.5 rounded border border-hermes-border text-hermes-muted text-sm uppercase tracking-wider hover:border-hermes-green hover:text-hermes-green transition-colors disabled:opacity-40"
           >
             {testing ? 'Testing...' : 'Test'}

@@ -18,12 +18,17 @@ export interface Model {
   object: string
 }
 
-const getBaseUrl = (cfg: HermesConfig) => `http://${cfg.host}:${cfg.port}`
+const getBaseUrl = (cfg: HermesConfig) => {
+  const host = cfg.provider === 'lmstudio' ? (cfg.host || 'localhost') : cfg.host
+  return `http://${host}:${cfg.port}`
+}
 
-const headers = (cfg: HermesConfig) => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${cfg.provider === 'lmstudio' ? cfg.apiKey : cfg.token}`,
-})
+const headers = (cfg: HermesConfig): Record<string, string> => {
+  const credential = cfg.provider === 'lmstudio' ? cfg.apiKey : cfg.token
+  const h: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (credential) h['Authorization'] = `Bearer ${credential}`
+  return h
+}
 
 export async function checkHealth(cfg: HermesConfig): Promise<boolean> {
   try {

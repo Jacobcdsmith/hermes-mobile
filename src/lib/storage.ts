@@ -9,7 +9,7 @@ const DEFAULT_CONFIG: HermesConfig = {
   host: '',
   port: '8765',
   token: 'jacob-local-key',
-  apiKey: 'lm-studio',
+  apiKey: '',
 }
 
 export function loadConfig(): HermesConfig {
