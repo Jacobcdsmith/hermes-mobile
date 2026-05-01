@@ -29,7 +29,7 @@ export default function Chat({
 
   // Load models on mount
   useEffect(() => {
-    if (!config.host) return
+    if (!config.host && config.provider !== 'lmstudio') return
     getModels(config).then(m => {
       const ids = m.map(x => x.id)
       setModels(ids)
@@ -96,7 +96,7 @@ export default function Chat({
         setConversations(finalConvos)
         saveHistory(finalConvos)
       } catch {
-        setStreamText('Error: Could not reach Hermes.')
+        setStreamText('Error: Could not reach the server.')
       }
     }
 
