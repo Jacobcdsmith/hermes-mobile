@@ -266,10 +266,10 @@ export default function Tutorial({ onComplete }: Props) {
               <span className="text-hermes-muted shrink-0">[  ]</span>
               <span className="text-hermes-muted/70">
                 Awaiting response
-                <span className="inline-flex gap-0.5 ml-1">
-                  <span className="w-1 h-1 rounded-full bg-hermes-muted animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1 h-1 rounded-full bg-hermes-muted animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1 h-1 rounded-full bg-hermes-muted animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="inline-flex gap-0.5 ml-1" aria-label="Loading">
+                  <span aria-hidden="true" className="w-1 h-1 rounded-full bg-hermes-muted animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span aria-hidden="true" className="w-1 h-1 rounded-full bg-hermes-muted animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span aria-hidden="true" className="w-1 h-1 rounded-full bg-hermes-muted animate-bounce" style={{ animationDelay: '300ms' }} />
                 </span>
               </span>
             </div>
