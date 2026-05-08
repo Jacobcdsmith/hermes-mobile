@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Chat from './pages/Chat'
 import Settings from './pages/Settings'
 import History from './pages/History'
+import Tutorial from './pages/Tutorial'
 import { loadConfig, loadHistory, loadModel } from './lib/storage'
 import { checkHealth } from './lib/hermes'
 import type { HermesConfig } from './lib/hermes'
@@ -33,24 +34,30 @@ export default function App() {
   // LM Studio defaults to localhost so an empty host is still usable
   const needsSetup = !config.host && config.provider !== 'lmstudio'
 
+  const handleTutorialComplete = (cfg: HermesConfig) => {
+    setConfig(cfg)
+  }
+
   return (
-    <div className="h-full flex flex-col bg-hermes-dark">
+    <div className="h-full flex flex-col bg-hermes-dark font-mono">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-hermes-border shrink-0">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-hermes-border shrink-0 bg-hermes-dark">
         <div className="flex items-center gap-2">
-          <span className="text-hermes-green font-bold text-lg">&gt;_</span>
-          <span className="font-bold text-lg tracking-wider">HERMES</span>
+          <span className="text-hermes-green font-bold text-base leading-none select-none">&gt;_</span>
+          <span className="font-bold text-base tracking-[0.2em] text-white">HERMES</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`w-2.5 h-2.5 rounded-full ${online ? 'bg-hermes-green pulse-green' : 'bg-red-500'}`} />
-          <span className="text-xs text-hermes-muted uppercase">{online ? 'Online' : 'Offline'}</span>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full shrink-0 ${online ? 'bg-hermes-green pulse-green' : 'bg-red-500'}`} />
+          <span className="text-[10px] text-hermes-muted uppercase tracking-widest">
+            {online ? 'NODE ONLINE' : 'OFFLINE'}
+          </span>
         </div>
       </header>
 
       {/* Content */}
       <main className="flex-1 overflow-hidden">
         {needsSetup ? (
-          <Settings config={config} setConfig={setConfig} onBack={() => {}} showBack={false} />
+          <Tutorial onComplete={handleTutorialComplete} />
         ) : page === 'chat' ? (
           <Chat
             config={config}
@@ -76,7 +83,7 @@ export default function App() {
 
       {/* Bottom Nav */}
       {!needsSetup && (
-        <nav className="flex border-t border-hermes-border shrink-0">
+        <nav className="flex border-t border-hermes-border shrink-0 bg-hermes-dark">
           {([
             ['chat', 'Chat', '💬'],
             ['history', 'History', '📋'],
@@ -85,13 +92,13 @@ export default function App() {
             <button
               key={key}
               onClick={() => setPage(key as Page)}
-              className={`flex-1 py-3 text-center text-xs uppercase tracking-wider transition-colors ${
+              className={`flex-1 py-3 text-center text-[10px] uppercase tracking-widest transition-colors font-mono ${
                 page === key
                   ? 'text-hermes-green border-t-2 border-hermes-green -mt-[2px]'
                   : 'text-hermes-muted'
               }`}
             >
-              <div className="text-lg">{icon}</div>
+              <div className="text-base">{icon}</div>
               {label}
             </button>
           ))}

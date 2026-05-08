@@ -115,7 +115,8 @@ export default function Chat({
   return (
     <div className="h-full flex flex-col">
       {/* Model selector bar */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-hermes-border shrink-0">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-hermes-border shrink-0 bg-hermes-dark">
+        <span className="text-hermes-muted/60 text-[10px] uppercase tracking-widest shrink-0 font-mono">Model</span>
         <select
           value={model}
           onChange={e => { setModel(e.target.value); saveModel(e.target.value) }}
@@ -126,7 +127,7 @@ export default function Chat({
         </select>
         <button
           onClick={() => { setActiveConvo(null) }}
-          className="px-3 py-1.5 rounded border border-hermes-border text-hermes-muted text-xs hover:border-hermes-green hover:text-hermes-green transition-colors"
+          className="px-3 py-1.5 rounded border border-hermes-border text-hermes-muted text-[10px] uppercase tracking-widest hover:border-hermes-green hover:text-hermes-green transition-colors font-mono"
         >
           + New
         </button>
@@ -135,10 +136,13 @@ export default function Chat({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
         {messages.length === 0 && !streaming && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-4xl text-hermes-border mb-3">🤖</div>
-            <div className="text-hermes-muted text-sm uppercase tracking-widest">Hermes Node Online</div>
-            <div className="text-hermes-muted/50 text-xs mt-1">Awaiting your directive...</div>
+          <div className="flex flex-col items-center justify-center h-full text-center select-none">
+            <div className="text-hermes-green/20 text-5xl font-bold tracking-widest mb-4 font-mono">&gt;_</div>
+            <div className="text-hermes-muted text-xs uppercase tracking-widest font-mono">Node Online</div>
+            <div className="text-hermes-muted/40 text-[10px] mt-1.5 font-mono uppercase tracking-widest flex items-center gap-1">
+              Awaiting directive
+              <span className="inline-block w-1.5 h-3 bg-hermes-muted/40 cursor-blink" />
+            </div>
           </div>
         )}
 
