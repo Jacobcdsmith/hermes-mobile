@@ -31,35 +31,39 @@ export default function History({ conversations, setConversations, onSelect, onB
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-hermes-border shrink-0">
-        <button onClick={onBack} className="text-hermes-green text-sm">&larr; Back</button>
-        <h2 className="text-sm font-bold uppercase tracking-wider">History</h2>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-hermes-border shrink-0 bg-hermes-dark">
+        <button onClick={onBack} className="text-hermes-green text-xs uppercase tracking-widest font-mono hover:opacity-80">← Back</button>
+        <h2 className="text-xs font-bold uppercase tracking-widest font-mono">History</h2>
         {conversations.length > 0 && (
-          <button onClick={clearAll} className="text-red-400 text-xs uppercase">Clear</button>
+          <button onClick={clearAll} className="text-red-400 text-[10px] uppercase tracking-widest font-mono hover:opacity-80">Clear</button>
         )}
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-hermes-muted text-sm">
-            No conversations yet
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <div className="text-hermes-muted text-[10px] uppercase tracking-widest font-mono">No transmissions logged</div>
+            <div className="text-hermes-muted/40 text-[10px] font-mono flex items-center gap-1 uppercase tracking-widest">
+              Start a chat to begin
+              <span className="inline-block w-1.5 h-3 bg-hermes-muted/40 cursor-blink" />
+            </div>
           </div>
         ) : (
           conversations.map(c => (
             <button
               key={c.id}
               onClick={() => onSelect(c.id)}
-              className="w-full flex items-center justify-between px-4 py-3 border-b border-hermes-border/50 hover:bg-hermes-surface transition-colors text-left"
+              className="w-full flex items-center justify-between px-4 py-3 border-b border-hermes-border/50 hover:bg-hermes-surface transition-colors text-left group"
             >
               <div className="flex-1 min-w-0 mr-3">
-                <div className="text-sm text-white truncate">{c.title}</div>
-                <div className="text-xs text-hermes-muted mt-0.5">
-                  {c.messages.length} messages · {formatTime(c.updatedAt)}
+                <div className="text-xs text-white truncate font-mono">{c.title}</div>
+                <div className="text-[10px] text-hermes-muted mt-0.5 font-mono uppercase tracking-wider">
+                  {c.messages.length} msg · {formatTime(c.updatedAt)}
                 </div>
               </div>
               <button
                 onClick={(e) => deleteConvo(c.id, e)}
-                className="text-hermes-muted hover:text-red-400 text-xs shrink-0"
+                className="text-hermes-border hover:text-red-400 text-xs shrink-0 transition-colors"
               >
                 ✕
               </button>

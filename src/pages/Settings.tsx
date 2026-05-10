@@ -53,9 +53,9 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
   const canSave = provider === 'lmstudio' ? true : !!host
 
   return (
-    <div className="h-full overflow-y-auto p-4">
+    <div className="h-full overflow-y-auto p-4 font-mono">
       {showBack && (
-        <button onClick={onBack} className="text-hermes-green text-sm mb-4">&larr; Back</button>
+        <button onClick={onBack} className="text-hermes-green text-xs uppercase tracking-widest mb-4 hover:opacity-80">← Back</button>
       )}
 
       <h2 className="text-hermes-green font-bold text-lg mb-1 tracking-wider">
@@ -67,13 +67,13 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
 
       {/* Provider selector */}
       <div className="mb-5">
-        <label className="block text-xs text-hermes-muted uppercase mb-2">Provider</label>
+        <label className="block text-[10px] text-hermes-muted uppercase tracking-widest mb-2">Provider</label>
         <div className="flex gap-2">
           {(['hermes', 'lmstudio'] as Provider[]).map(p => (
             <button
               key={p}
               onClick={() => switchProvider(p)}
-              className={`flex-1 py-2 rounded text-sm font-mono uppercase tracking-wider border transition-colors ${
+              className={`flex-1 py-2 rounded text-xs font-mono uppercase tracking-widest border transition-colors ${
                 provider === p
                   ? 'bg-hermes-green text-black border-hermes-green font-bold'
                   : 'bg-hermes-surface border-hermes-border text-hermes-muted hover:border-hermes-green hover:text-hermes-green'
@@ -87,7 +87,7 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
 
       <div className="space-y-4">
         <div>
-          <label className="block text-xs text-hermes-muted uppercase mb-1">
+          <label className="block text-[10px] text-hermes-muted uppercase tracking-widest mb-1.5">
             {provider === 'lmstudio' ? 'Host' : 'Host IP'}
           </label>
           <input
@@ -100,7 +100,7 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
         </div>
 
         <div>
-          <label className="block text-xs text-hermes-muted uppercase mb-1">Port</label>
+          <label className="block text-[10px] text-hermes-muted uppercase tracking-widest mb-1.5">Port</label>
           <input
             type="text"
             value={port}
@@ -112,7 +112,7 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
 
         {provider === 'lmstudio' ? (
           <div>
-            <label className="block text-xs text-hermes-muted uppercase mb-1">API Key</label>
+            <label className="block text-[10px] text-hermes-muted uppercase tracking-widest mb-1.5">API Key</label>
             <input
               type="password"
               value={apiKey}
@@ -120,13 +120,13 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
               placeholder="lm-studio"
               className="w-full bg-hermes-surface border border-hermes-border rounded px-3 py-2.5 text-white text-sm font-mono focus:border-hermes-green focus:outline-none"
             />
-            <p className="text-hermes-muted text-xs mt-1">
-              Set in LM Studio &rarr; Developer &rarr; API Key. Leave blank to use default.
+            <p className="text-hermes-muted/60 text-[10px] mt-1.5 leading-relaxed">
+              Set in LM Studio → Developer → API Key. Leave blank to use default.
             </p>
           </div>
         ) : (
           <div>
-            <label className="block text-xs text-hermes-muted uppercase mb-1">Bearer Token</label>
+            <label className="block text-[10px] text-hermes-muted uppercase tracking-widest mb-1.5">Bearer Token</label>
             <input
               type="password"
               value={token}
@@ -141,24 +141,44 @@ export default function Settings({ config, setConfig, onBack, showBack }: Props)
           <button
             onClick={test}
             disabled={!resolvedHost || testing}
-            className="flex-1 py-2.5 rounded border border-hermes-border text-hermes-muted text-sm uppercase tracking-wider hover:border-hermes-green hover:text-hermes-green transition-colors disabled:opacity-40"
+            className="flex-1 py-2.5 rounded border border-hermes-border text-hermes-muted text-xs uppercase tracking-widest hover:border-hermes-green hover:text-hermes-green transition-colors disabled:opacity-40"
           >
             {testing ? 'Testing...' : 'Test'}
           </button>
           <button
             onClick={save}
             disabled={!canSave}
-            className="flex-1 py-2.5 rounded bg-hermes-green text-black font-bold text-sm uppercase tracking-wider hover:bg-green-400 transition-colors disabled:opacity-40"
+            className="flex-1 py-2.5 rounded bg-hermes-green text-black font-bold text-xs uppercase tracking-widest hover:bg-green-400 transition-colors disabled:opacity-40"
           >
             Save
           </button>
         </div>
 
         {testResult !== null && (
-          <div className={`text-center text-sm py-2 rounded ${testResult ? 'text-hermes-green bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
+          <div className={`text-center text-xs py-2 rounded font-mono uppercase tracking-widest ${testResult ? 'text-hermes-green bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
             {testResult ? '✓ Connection successful' : '✗ Connection failed'}
           </div>
         )}
+
+        {/* Connection tips */}
+        <div className="mt-4 p-3 rounded border border-hermes-border/50 bg-hermes-surface">
+          <div className="text-[10px] text-hermes-muted uppercase tracking-widest mb-2">Connection Tips</div>
+          {provider === 'lmstudio' ? (
+            <ul className="space-y-1.5 text-[10px] text-hermes-muted/70 leading-relaxed">
+              <li>► Open LM Studio and load a model.</li>
+              <li>► Go to the Developer tab and start the local server.</li>
+              <li>► Use <span className="text-hermes-green/80">localhost</span> if on the same machine, or the machine's local IP otherwise.</li>
+              <li>► Default port is <span className="text-hermes-green/80">1234</span>.</li>
+            </ul>
+          ) : (
+            <ul className="space-y-1.5 text-[10px] text-hermes-muted/70 leading-relaxed">
+              <li>► Both devices must be on the same Wi-Fi network.</li>
+              <li>► Find the node's IP in its network settings.</li>
+              <li>► Default port is <span className="text-hermes-green/80">8765</span>.</li>
+              <li>► Bearer token must match what the node is configured with.</li>
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   )
